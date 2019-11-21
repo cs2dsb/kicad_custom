@@ -1,0 +1,1 @@
+#Kicad custom footprints & components
