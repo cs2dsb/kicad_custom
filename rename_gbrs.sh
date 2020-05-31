@@ -48,24 +48,35 @@ if [ -f "$POS" ]; then
         l=0
         mid_x=9999
         mid_y=9999
+        layer=9999
         # print the header untouched
         #read line; echo "$line" >> /test/myCSV_new.csv
         IFS=,
         while read -ra fields; do
             if [[ "$l" -gt 0 ]]; then
                 if [[ "$mid_x" -eq 9999 ]]; then
-                    echo "Failed to find 'Mid X' column in BOM output"
+                    echo "Failed to find 'Mid X' column in POS output"
                     exit 1
                 fi
                 if [[ "$mid_y" -eq 9999 ]]; then
-                    echo "Failed to find 'Mid Y' column in BOM output"
+                    echo "Failed to find 'Mid Y' column in POS output"
                     exit 1
                 fi
+                if [[ "$layer" -eq 9999 ]]; then
+                    echo "Failed to find 'Layer' column in POS output"
+                    exit 1
+                fi
+                is_bot=1
+                if [[ "${fields[$layer]}" = "bottom" ]]; then
+                    is_bot=-1
+                fi
+
                 x=${fields[$mid_x]}
                 y=${fields[$mid_y]}
                 if [[ $x =~ .*mm ]]; then
                     echo "Already contains mm"
                 else
+                    x=`echo "$x * $is_bot" | bc`
                     fields[$mid_x]=${x}mm
                 fi
                 if [[ $y =~ .*mm ]]; then
@@ -84,6 +95,9 @@ if [ -f "$POS" ]; then
                     fi
                     if [ "Mid Y" = "$i" ]; then
                         mid_y=$z
+                    fi
+                    if [ "Layer" = "$i" ]; then
+                        layer=$z
                     fi
                     z=$((z+1))
                 done
